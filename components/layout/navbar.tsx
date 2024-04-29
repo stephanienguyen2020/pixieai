@@ -32,7 +32,7 @@ export default function NavBar({ session }: { session: Session | null }) {
             ></Image>
             <p>Pixie AI</p>
           </Link>
-          <div>
+          {/* <div>
             {session ? (
               <UserDropdown session={session} />
             ) : (
@@ -43,7 +43,7 @@ export default function NavBar({ session }: { session: Session | null }) {
                 Sign In
               </button>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </>
