@@ -6,20 +6,20 @@ import ComponentGrid from "@/components/home/component-grid";
 import { nFormatter } from "@/lib/utils";
 
 export default async function Home() {
-  const { stargazers_count: stars } = await fetch(
-    "https://api.github.com/repos/steven-tey/precedent",
-    {
-      ...(process.env.GITHUB_OAUTH_TOKEN && {
-        headers: {
-          Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }),
-      next: { revalidate: 86400 },
-    },
-  )
-    .then((res) => res.json())
-    .catch((e) => console.log(e));
+  // const { stargazers_count: stars } = await fetch(
+  //   "https://api.github.com/repos/steven-tey/precedent",
+  //   {
+  //     ...(process.env.GITHUB_OAUTH_TOKEN && {
+  //       headers: {
+  //         Authorization: `Bearer ${process.env.GITHUB_OAUTH_TOKEN}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //     }),
+  //     next: { revalidate: 86400 },
+  //   },
+  // )
+  //   .then((res) => res.json())
+  //   .catch((e) => console.log(e));
 
   return (
     <>
@@ -44,7 +44,8 @@ export default async function Home() {
           className="mt-6 animate-fade-up text-center text-gray-500 opacity-0 [text-wrap:balance] md:text-xl"
           style={{ animationDelay: "0.25s", animationFillMode: "forwards" }}
         >
-          AI-driven solution for enhanced patient care in hospitals, reducing manual strain on nurses and prioritizing patient needs efficiently
+          AI-driven solution for enhanced patient care in hospitals, reducing
+          manual strain on nurses and prioritizing patient needs efficiently
         </p>
         <div
           className="mx-auto mt-6 flex animate-fade-up items-center justify-center space-x-5 opacity-0"
@@ -56,7 +57,6 @@ export default async function Home() {
             target="_blank"
             rel="noopener noreferrer"
           >
-
             <p>DevPost</p>
           </a>
           <a
@@ -78,13 +78,7 @@ export default async function Home() {
             key={title}
             title={title}
             description={description}
-            demo={
-              title === "Nurse/Doctor Portal" ? (
-                <ComponentGrid />
-              ) : (
-                demo
-              )
-            }
+            demo={title === "Nurse/Doctor Portal" ? <ComponentGrid /> : demo}
             large={large}
           />
         ))}
@@ -99,12 +93,11 @@ const features = [
     description:
       "Welcome to the centralized hub for medical professionals. Easily navigate through patient priorities and access comprehensive health summaries at a glance.",
     large: true,
-    demo: <ComponentGrid />
+    demo: <ComponentGrid />,
   },
   {
     title: "Hours Saved on Patient Rounds This Week",
-    description:
-      "",
+    description: "",
     demo: <WebVitals />,
   },
 ];
