@@ -79,7 +79,7 @@ export default async function Home() {
             title={title}
             description={description}
             demo={
-              title === "Beautiful, reusable components" ? (
+              title === "Nurse/Doctor Portal" ? (
                 <ComponentGrid />
               ) : (
                 demo
@@ -97,8 +97,9 @@ const features = [
   {
     title: "Nurse/Doctor Portal",
     description:
-      "This portal allows nurses and doctors to view and manage the priority of patients and their health summaries",
+      "Welcome to the centralized hub for medical professionals. Easily navigate through patient priorities and access comprehensive health summaries at a glance.",
     large: true,
+    demo: <ComponentGrid />
   },
   {
     title: "Hours Saved on Patient Rounds This Week",
