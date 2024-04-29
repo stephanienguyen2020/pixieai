@@ -72,7 +72,7 @@ export default async function Home() {
           </a>
         </div>
       </div>
-      <div className="my-10 grid w-full max-w-screen-xl animate-fade-up grid-cols-1 gap-5 px-5 md:grid-cols-3 xl:px-0">
+      {/* <div className="my-10 grid w-full max-w-screen-xl animate-fade-up grid-cols-1 gap-5 px-5 md:grid-cols-3 xl:px-0">
         {features.map(({ title, description, demo, large }) => (
           <Card
             key={title}
@@ -88,23 +88,23 @@ export default async function Home() {
             large={large}
           />
         ))}
-      </div>
+      </div> */}
     </>
   );
 }
 
-const features = [
-  {
-    title: "Nurse/Doctor Portal",
-    description:
-      "Welcome to the centralized hub for medical professionals. Easily navigate through patient priorities and access comprehensive health summaries at a glance.",
-    large: true,
-    demo: <ComponentGrid />
-  },
-  {
-    title: "Hours Saved on Patient Rounds This Week",
-    description:
-      "",
-    demo: <WebVitals />,
-  },
-];
+// const features = [
+//   {
+//     title: "Nurse/Doctor Portal",
+//     description:
+//       "Welcome to the centralized hub for medical professionals. Easily navigate through patient priorities and access comprehensive health summaries at a glance.",
+//     large: true,
+//     demo: <ComponentGrid />
+//   },
+//   {
+//     title: "Hours Saved on Patient Rounds This Week",
+//     description:
+//       "",
+//     demo: <WebVitals />,
+//   },
+// ];
