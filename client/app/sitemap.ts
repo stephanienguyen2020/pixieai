@@ -11,11 +11,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: "https://pixieai-frontend.vercel.app",
+      url: "https://pixieai.vercel.app",
       lastModified: new Date(),
     },
     ...users.map((user) => ({
-      url: `https://pixieai-frontend.vercel.app/${user.id}`,
+      url: `https://pixieai.vercel.app/${user.id}`,
       lastModified: new Date(),
     })),
   ];
