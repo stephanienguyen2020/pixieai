@@ -30,8 +30,8 @@ Nurses in hospitals manage multiple patients daily and overwhelming workloads in
 - Fill in the required environment variables in the `.env` file. Make sure you have all the required keys and secrets.
 
 ### Instructions: 
-1. To run chat, click on `run.sh`
-2. Get the Streamlit UI: `make run`
+1. To run chat, go to `backend `, click on `run.sh`
+2. In the  `backend` folder, run the Streamlit UI: `make run`
 
 - All PDF records will be saved in `records` folder.
 - All QR code will be saved in `qr_code` folder.
