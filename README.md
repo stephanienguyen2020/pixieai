@@ -12,8 +12,6 @@ Nurses in hospitals manage multiple patients daily and overwhelming workloads in
 
 ## Project features
 
-https://github.com/chrislevn/pixieai/assets/32094007/67d42822-9fd1-4b81-88be-5732fd5b9780
-
 - **𝗔𝘂𝘁𝗼𝗺𝗮𝘁𝗲𝗱 𝗖𝗵𝗲𝗰𝗸-𝗜𝗻𝘀:** Before each check-in, Pixie AI contacts patients via bedside intercoms, posing standardized questions. We made sure the AI sounds as natural and fast as possible. These interactions are recorded and analyzed for emotional and health cues (patient's mood, condition, note, etc), helping to prioritize care needs. 
 - **𝗦𝗺𝗮𝗿𝘁 𝗥𝗮𝗻𝗸𝗶𝗻𝗴 𝗦𝘆𝘀𝘁𝗲𝗺:** Using sentiment analysis from Databricks, our system evaluates the urgency of each patient's situation, ranking them to ensure nurses attend to the most critical cases first.
 - **𝗥𝗲𝗮𝗹-𝗧𝗶𝗺𝗲 𝗨𝗽𝗱𝗮𝘁𝗲𝘀:** Nurses and doctors can check the order of their visit anytime. We prioritize patients who need urgent help first.
