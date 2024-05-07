@@ -22,3 +22,6 @@ uvicorn==0.29.0
 websockets
 hume
 hume[microphone]
+azure-ai-generative[index,evaluate,promptflow]
+azure-identity
+openai

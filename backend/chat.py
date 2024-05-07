@@ -10,12 +10,21 @@ import json
 from dotenv import load_dotenv
 from record import Record
 import subprocess
+from azure.ai.resources.client import AIClient
+from azure.identity import DefaultAzureCredential
+import openai
 
 load_dotenv(override=True)
 DATABASE_SERVICE = os.getenv("DATABASE_SERVICE")
 
+
 class Chat:
-    def __init__(self, patient_id, ai_service="gemini", databse_service="databricks"):
+    def __init__(
+        self,
+        patient_id,
+        ai_service=os.getenv("AI_SERVICE"),
+        databse_service="databricks",
+    ):
         if not patient_id:
             raise ValueError("Patient ID is required")
         self.patient_id = patient_id
@@ -24,6 +33,25 @@ class Chat:
         if ai_service == "gemini":
             genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
             self.model = genai.GenerativeModel("gemini-pro")
+        elif ai_service == "azure":
+            # Load config values
+            with open(r"config.json") as config_file:
+                config_details = json.load(config_file)
+
+            # Setting up the deployment name
+            chatgpt_model_name = config_details["CHATGPT_MODEL"]
+
+            # This is set to `azure`
+            openai.api_type = "azure"
+
+            # The API key for your Azure OpenAI resource.
+            openai.api_key = os.getenv("OPENAI_API_KEY")
+
+            # The base URL for your Azure OpenAI resource. e.g. "https://<your resource name>.openai.azure.com"
+            openai.api_base = config_details["OPENAI_API_BASE"]
+
+            # Currently OPENAI API have the following versions available: 2022-12-01
+            openai.api_version = config_details["OPENAI_API_VERSION"]
 
     async def record_streaming(self):
         # Retrieve the Hume API key from the environment variables
@@ -90,7 +118,6 @@ class Chat:
         }
 
     def chat(self):
-        
         while True:
             try:
                 asyncio.run(self.record_streaming())
@@ -100,13 +127,24 @@ class Chat:
                 print("Conversation processed. Exiting...")
                 break
 
-
     def detect_negative_emotion(self, emotion_dict):
-        response = self.model.generate_content(
-            "From these emotion, determine if there are any negative emotion. Only return True or False.\n {}".format(
-                emotion_dict
+        if os.getenv("AI_SERVICE") == "azure":
+            response = openai.ChatCompletion.create(
+                model=os.getenv("OPENAI_MODEL"),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "From these emotion, determine if there are any negative emotion. Only return True or False.",
+                    },
+                    {"role": "user", "content": json.dumps(emotion_dict)},
+                ],
             )
-        )
+        else:
+            response = self.model.generate_content(
+                "From these emotion, determine if there are any negative emotion. Only return True or False.\n {}".format(
+                    emotion_dict
+                )
+            )
 
         emotion_result = response.text
         print("Should visit or not based on emotion: ", emotion_result)
@@ -119,11 +157,28 @@ class Chat:
         return emotion_result
 
     def process_priority(self, conversation, emotion_dict):
-        response = self.model.generate_content(
-            "Process the priority of the patient from scale 1-10 based on the conversation and priority.  Return in format <priority number>. If cannot determine, return 1 \n Conversation: {} \n Emotion: {}".format(
-                conversation, emotion_dict
+        if os.getenv("AI_SERVICE") == "azure":
+            response = openai.ChatCompletion.create(
+                model=os.getenv("OPENAI_MODEL"),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Process the priority of the patient from scale 1-10 based on the conversation and priority.  Return in format <priority number>. If cannot determine, return 1",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Conversation: {}".format(conversation),
+                    },
+                    {"role": "user", "content": "Emotion: {}".format(emotion_dict)},
+                ],
             )
-        )
+            priority_result = response.choices[0].message
+        else:
+            response = self.model.generate_content(
+                "Process the priority of the patient from scale 1-10 based on the conversation and priority.  Return in format <priority number>. If cannot determine, return 1 \n Conversation: {} \n Emotion: {}".format(
+                    conversation, emotion_dict
+                )
+            )
         priority_result = response.text
         priority_result = int(priority_result)
 
@@ -132,11 +187,24 @@ class Chat:
 
     def summarize_conversation(self, conversation):
         today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        response = self.model.generate_content(
-            "From the conversation, generate a summarized note on patient's health. Don't overlook anything. Return the summary in 1 line. \n {}".format(
-                conversation
+        if os.getenv("AI_SERVICE") == "azure":
+            response = openai.ChatCompletion.create(
+                model=os.getenv("OPENAI_MODEL"),
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "From the conversation, generate a summarized note on patient's health. Don't overlook anything. Return the summary in 1 line.",
+                    },
+                    {"role": "user", "content": conversation},
+                ],
             )
-        )
+            summary_result = response.choices[0].message
+        else:
+            response = self.model.generate_content(
+                "From the conversation, generate a summarized note on patient's health. Don't overlook anything. Return the summary in 1 line. \n {}".format(
+                    conversation
+                )
+            )
 
         summary_result = response.text
         print("Summary of patient's health: ", summary_result)
@@ -153,7 +221,7 @@ class Chat:
         summary_result,
         patient_info,
         emotion_result,
-        sentiment_result
+        sentiment_result,
     ):
         system = System(databse_service=os.getenv("DATABASE_SERVICE"))
         today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -163,9 +231,16 @@ class Chat:
         )
 
         record = Record(conversation, databse_service=os.getenv("DATABASE_SERVICE"))
-        record.update_record(self.patient_id, conversation, emotion_dict, priority_result, summary_result, sentiment_result)
+        record.update_record(
+            self.patient_id,
+            conversation,
+            emotion_dict,
+            priority_result,
+            summary_result,
+            sentiment_result,
+        )
 
-        # Send email to nurse if negative emotion detected     
+        # Send email to nurse if negative emotion detected
         nurse_id = patient_info[12]
 
         if emotion_result == "True":
@@ -185,7 +260,7 @@ class Chat:
                 sentiment_result = response.text
                 sentiment, score = sentiment_result.split(":")
                 sentiment_dict[sentiment] += float(score)
-       
+
         print("Sentiment analysis: ", sentiment_dict)
         return json.dumps(sentiment_dict)
 
@@ -231,7 +306,7 @@ class Chat:
             summary_result,
             patient_info,
             emotion_result,
-            sentiment_result
+            sentiment_result,
         )
         return conversation
 
@@ -239,5 +314,5 @@ class Chat:
 if __name__ == "__main__":
     PATIENT_ID = "1"
     chat = Chat(PATIENT_ID)
-    # chat.chat()
-    chat.process_conversation()
+    chat.chat()
+    # chat.process_conversation()
