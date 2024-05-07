@@ -1,7 +1,8 @@
 # Pixie AI
 <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue" alt="License"></a>
 [![Made with Python](https://img.shields.io/badge/Python->=3.10-blue?logo=python&logoColor=white)](https://python.org "Go to Python homepage")
-<img width="2402" alt="PixieAI (1)" src="https://github.com/chrislevn/pixieai/assets/32094007/14e786cf-0151-4172-9698-caf1564a55a2">
+
+<img width="2562" alt="PixieAI FigJam" src="https://github.com/stephanienguyen2020/pixieai/assets/32094007/71943e42-404d-4d51-b472-56ef6a5185a4">
 
 This project aims to develop an artificial intelligence (AI) assistant to streamline the nurse visit process, saving time for both nurses, doctors, and patients.
 
