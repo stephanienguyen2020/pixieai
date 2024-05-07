@@ -4,18 +4,19 @@ from objects import Patient, Nurse
 import pytest
 from bson import ObjectId
 from faker import Faker
+import os
 
 fake = Faker()
 
 def test_ping_database():
     # Add your test logic here
-    system = System(databse_service="local")
+    system = System(databse_service=os.getenv("DATABASE_SERVICE"))
     assert system.ping_database() == True
 
 
 def test_create_patient():
 #     # Add your test logic here
-    system = System(databse_service="local")
+    system = System(databse_service=os.getenv("DATABASE_SERVICE"))
 
     nurse_fake_first_name = fake.first_name()
     nurse_fake_last_name = fake.last_name()
@@ -48,7 +49,7 @@ def test_create_patient():
     room_number = str(fake.random_int(min=100, max=999))
     assign_nurse_id = str(nurse_id)
     priority = fake.random_int(min=1, max=10)
-    note = fake.text()
+    note = system.create_fake_patient_note()
 
     patient = Patient(
         first_name,

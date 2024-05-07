@@ -28,6 +28,10 @@ class System:
             self.connection = sqlite3.connect("local.db")
             self.cursor = self.connection.cursor()
 
+        if ai_service == "gemini":
+            genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+            self.model = genai.GenerativeModel("gemini-pro")
+
     def ping_database(self):
         """Ping the database"""
         # return self.client.server_info()
@@ -94,16 +98,19 @@ class System:
 
     def get_patient_record(self, patient_id):
         """Get the patient record from the database"""
-        self.cursor.execute(f"SELECT * FROM conversations WHERE patient_id = {patient_id}")
+        self.cursor.execute(
+            f"SELECT * FROM conversations WHERE patient_id = {patient_id}"
+        )
         patient = self.cursor.fetchall()
         return patient
-    
+
     def update_patient_process(self, patient_id, process):
         """Update the patient process in the database"""
-        self.cursor.execute(f"UPDATE user SET process = {process} WHERE id = {patient_id}")
+        self.cursor.execute(
+            f"UPDATE user SET process = {process} WHERE id = {patient_id}"
+        )
         self.connection.commit()
         return "Patient process updated"
-
 
     def update_patient_record(self, patient_id, new_note, timestamp):
         """Update the patient record in the database"""
@@ -177,14 +184,12 @@ class System:
         )
         self.connection.commit()
         return "Patient order updated"
-    
+
     def update_patient_note(self, patient_id, notes):
         """Update the note of the patient"""
         notes = '"' + notes + '"'
 
-        self.cursor.execute(
-            f"UPDATE user SET note = {notes} WHERE id = {patient_id}"
-        )   
+        self.cursor.execute(f"UPDATE user SET note = {notes} WHERE id = {patient_id}")
         self.connection.commit()
         return "Patient note updated"
 
@@ -201,7 +206,9 @@ class System:
 
     def check_patients_order(self, nurse_id):
         """Check the order of the patients"""
-        self.cursor.execute(f"""SELECT * FROM user WHERE assign_nurse_id = {nurse_id} ORDER BY priority DESC""")
+        self.cursor.execute(
+            f"""SELECT * FROM user WHERE assign_nurse_id = {nurse_id} ORDER BY priority DESC"""
+        )
         patients = self.cursor.fetchall()
         return patients
 
@@ -220,8 +227,20 @@ class System:
         self.cursor.execute(create_table_query)
 
         # Insert fake data
-        insert_query = f"INSERT INTO staff (first_name, last_name, age, work_shift, phone, email) VALUES ('{nurse_info.first_name}', '{nurse_info.last_name}', {nurse_info.age}, '{nurse_info.work_shift}', '{nurse_info.phone}', '{nurse_info.email}')"
-        self.cursor.execute(insert_query)
+        insert_query = (
+            f"INSERT INTO staff (first_name, last_name, age, work_shift, phone, email) VALUES (?, ?, ?, ?, ?, ?)"
+            ""
+        )
+        values = (
+            nurse_info.first_name,
+            nurse_info.last_name,
+            nurse_info.age,
+            nurse_info.work_shift,
+            nurse_info.phone,
+            nurse_info.email,
+        )
+
+        self.cursor.execute(insert_query, values)
         self.connection.commit()
 
         return self.cursor.lastrowid
@@ -262,6 +281,43 @@ class System:
         )
         return nurse
 
+    def similarity_search(self, patient_id):
+        """Find the similar cases in the database"""
+        patient = self.get_patient(patient_id)
+        patient_note = patient[-2]
+
+        if os.getenv("DATABASE_SERVICE") == "databricks":
+            self.cursor.execute(
+                "SELECT id, ai_similarity(?, note) FROM user WHERE id != ?",
+                (patient_note,),
+            )
+            conversations = self.cursor.fetchall()
+
+            similarity = {}
+            for conversation in conversations:
+                similarity[conversation[0]] = conversation[1]
+        else:
+            self.cursor.execute("SELECT id, note FROM user WHERE id != ?", (patient_id,))
+            conversations = self.cursor.fetchall()
+
+            similarity = {}
+            for conversation in conversations:
+                if conversation[0] != 2:
+                    try:
+                        response = self.model.generate_content(
+                            "Compare the patient's note with the database. Return the similarity score based on health condition in number from 1 (lowest) - to 100 (highest similarity). Return format: <similarity score>. \n Patient Note: {} \n Database Note: {}".format(
+                                patient_note, str(conversation[1])
+                            )
+                        ).text
+                        similarity[conversation[0]] = int(response)
+                    except:
+                        similarity[conversation[0]] = 0
+
+            
+            similarity = {k: int(v) for k, v in similarity.items() if int(v) > 0}
+
+        return similarity
+
     def assign_patient_to_nurse(self, patient_id, nurse_id):
         """Assign the patient to a nurse"""
         patient = self.get_patient(patient_id)
@@ -270,6 +326,11 @@ class System:
             {"_id": ObjectId(patient_id)}, {"$set": patient}
         )
         return "Patient assigned to nurse"
+
+    def create_fake_patient_note(self):
+        return self.model.generate_content(
+            "Create a fake patient's short condition in 1 sentence either normal or not. Don't add any personal information."
+        ).text
 
     def send_email(self, nurse_id, patient_id):
         """Send an email to the patient"""

@@ -2,12 +2,13 @@ from fpdf import FPDF
 from system import System
 from objects import Patient, Nurse
 import json
+import os
 class PDF:
     def __init__(self):
         pass
 
     def create_pdf(self, patient_id: str):
-        system = System(databse_service="local")
+        system = System(databse_service=os.getenv("DATABASE_SERVICE"))
         patient = system.get_patient(patient_id)
         patient_id = patient[0]
 

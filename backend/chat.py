@@ -9,11 +9,10 @@ import requests
 import json
 from dotenv import load_dotenv
 from record import Record
-import speech_recognition as sr
-
+import subprocess
 
 load_dotenv(override=True)
-
+DATABASE_SERVICE = os.getenv("DATABASE_SERVICE")
 
 class Chat:
     def __init__(self, patient_id, ai_service="gemini", databse_service="databricks"):
@@ -94,13 +93,13 @@ class Chat:
         
         while True:
             try:
-                user_input = input("Enter 'start' to start recording conversation: ")
                 asyncio.run(self.record_streaming())
-        except KeyboardInterrupt:
-            print("Conversation recorded. Processing conversation...")
-            self.process_conversation()
-            print("Conversation processed. Exiting...")
-            return
+            except KeyboardInterrupt:
+                print("Recording stopped. Processing conversation...")
+                self.process_conversation()
+                print("Conversation processed. Exiting...")
+                break
+
 
     def detect_negative_emotion(self, emotion_dict):
         response = self.model.generate_content(
@@ -112,7 +111,7 @@ class Chat:
         emotion_result = response.text
         print("Should visit or not based on emotion: ", emotion_result)
         if emotion_result == "True":
-            system = System(databse_service="local")
+            system = System(databse_service=os.getenv("DATABASE_SERVICE"))
             patient_info = system.get_patient(self.patient_id)
             patient_info[-1] = 0
             system.update_patient_process(self.patient_id, patient_info)
@@ -141,7 +140,7 @@ class Chat:
 
         summary_result = response.text
         print("Summary of patient's health: ", summary_result)
-        system = System(databse_service="local")
+        system = System(databse_service=os.getenv("DATABASE_SERVICE"))
         system.update_patient_note(self.patient_id, summary_result)
 
         return summary_result
@@ -156,14 +155,14 @@ class Chat:
         emotion_result,
         sentiment_result
     ):
-        system = System(databse_service="local")
+        system = System(databse_service=os.getenv("DATABASE_SERVICE"))
         today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         summary_result = summary_result.replace("'", " ")
         system.update_patient_order(
             self.patient_id, str(priority_result), str(summary_result)
         )
 
-        record = Record(conversation, databse_service="local")
+        record = Record(conversation, databse_service=os.getenv("DATABASE_SERVICE"))
         record.update_record(self.patient_id, conversation, emotion_dict, priority_result, summary_result, sentiment_result)
 
         # Send email to nurse if negative emotion detected     
@@ -206,7 +205,7 @@ class Chat:
             return
         emotion_features = chat_messages["emotion_features"]
 
-        system = System(databse_service="local")
+        system = System(databse_service=os.getenv("DATABASE_SERVICE"))
         patient_info = system.get_patient(self.patient_id)
         top_5_emotions = sorted(
             emotion_features, key=emotion_features.get, reverse=True

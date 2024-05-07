@@ -22,4 +22,3 @@ uvicorn==0.29.0
 websockets
 hume
 hume[microphone]
-SpeechRecognition[whisper-local]
