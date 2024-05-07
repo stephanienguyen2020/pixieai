@@ -1,0 +1,12 @@
+**/.pytest_cache/
+.env
+pixieai-f6be386dd9c2.json
+Edit Voice Configuration · Hume AI_files
+**/.idea/
+**/__pycache__/
+**/qr_code/
+**/records/
+.idea/
+.nicegui/
+local.db
+.vscode/
