@@ -45,7 +45,7 @@ Fork the repository and create a pull request with your contributions. Raise iss
 ## License
 
 <h2>License</h2>
-Released under <a href="/LICENSE">MIT</a> by <a href="https://github.com/chrislevn">@chrislevn</a>.
+Released under <a href="/LICENSE">MIT</a> by <a href="https://github.com/chrislevn">@chrislevn</a> and <a href="https://github.com/stephanienguyen2020">@stephanienguyen2020</a>.
 
 ## Disclaimer
 
